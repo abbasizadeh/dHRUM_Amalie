@@ -4,12 +4,16 @@ library(ggplot2)
 setwd('D:/Project/Amalie_Paper')
 getwd()
 
+# the directory of the downloaded csv file
 Files <- list.files('./GWdata') 
 FilePath <- paste0('./GWdata/', Files)
 
+# reading csv files and storing them into a list (GW_TSs) 
 GW_TSs <- lapply(FilePath, read.csv)
 GW_TSs <- lapply(GW_TSs, as.data.table)
 
+# function for decomposing Time column into date and time columns
+# Time column format: 2022-05-10 12:51:22
 FUN = function(x){
   x$date <- as.Date(x$Time)
   x$Time <- format(as.POSIXct(x$Time), format = '%H:%M')
@@ -50,8 +54,7 @@ for(i in 1:length(Files2)){
   names(GW_TSs[[length(Files)+i]]) <- c('Time', 'value', 'date', 'day', 'month', 'year','ID') 
 }
 
-# Files <- gsub('-2022-08-28 ', '-', Files)
-
+# checking the columns' configuration
 GW_TSs[[1]]
 GW_TSs[[5]]
 GW_TSs[[10]]
@@ -63,7 +66,7 @@ GW_TSs[[40]]
 GW_TSs[[45]]
 
 
-# calculating daily Groundwater level
+# calculating daily Groundwater level (mean value of sub-daily time scale)
 GW_TSs_daily <- list()
 for (i in 1:length(GW_TSs)) {
   GW_TSs_daily[[i]] <- GW_TSs[[i]][, mean(value), by = .(day, month, year, ID)]
@@ -74,7 +77,7 @@ for (i in 1:length(GW_TSs)) {
   names(GW_TSs_daily[[i]]) <- c('ID', 'value', 'date')
 }
 
-
+# plotting 
 dta <- data.frame(GW_TSs_daily[[1]])
 for (i in 2:length(GW_TSs_daily[[1]]$ID)){
   dta <- rbind(dta ,data.frame(GW_TSs_daily[[i]])) 
@@ -85,3 +88,5 @@ ggplot(data = dta) + geom_line(aes(x = date, y = value)) + facet_wrap(~ID, ncol 
 ggplot(data = dta) + geom_line(aes(x = date, y = value, color = ID)) + 
   theme(legend.position="none")
 
+
+# Files <- gsub('-2022-08-28 ', '-', Files)
