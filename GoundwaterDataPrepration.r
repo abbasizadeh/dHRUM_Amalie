@@ -19,6 +19,7 @@ FUN = function(x){
   x$Time <- format(as.POSIXct(x$Time), format = '%H:%M')
   return(x)}
 
+# extracting the sensors' IDs
 Name <- substr(x = Files, start = 1, stop = 15)
 
 for(i in 1:length(Files)){
