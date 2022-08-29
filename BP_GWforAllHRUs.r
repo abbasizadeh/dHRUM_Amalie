@@ -1,4 +1,6 @@
 # Assiging Groundwater to each HRU
+# This script is written to calculate the groundwater variation time series for 
+#each HRU in BP basin
 
 library(fst)
 library(dplyr)
@@ -13,26 +15,25 @@ library(sp)
 setwd("D:/project/Setups_For_Dist_Model/inputs/Soil_input_data")
 getwd()
 
+# Reading fst files
 GroundWater <- as.data.table(read.fst("vrty.fst")) %>% dcast(ID + date ~ variable, value.var = "value")
 
 # Categorizing GW level based on the distance from the stream
-
 
 # level 1 closest to the river
 BP_III_3 <- GroundWater[ID == '901288001062293',][, hldnrm := scale(hladina)]
 BP_II_5 <- GroundWater[ID == '901288001062280',][, hldnrm := scale(hladina)]
 BP_I_4 <- GroundWater[ID == '901288001062294',][, hldnrm := scale(hladina)]
 
-
-# ggplot(BP_I_3) + geom_line(aes(date, hldnrm))
+# merging the time series
 BP_GW_l1 <- merge(BP_III_3, BP_II_5, by = 'date')
 BP_GW_l1 <- merge(BP_GW_l1, BP_I_4, by = 'date')
 
+# calculating the mean value of the time series of level 1
 BP_GW_l1[, GWfluc := ((hldnrm.x + hldnrm.y + hldnrm)/3)]
 
-# BP_GW_l1[, .(hldnrm, hldnrm.x, hldnrm.y, GWfluc)=c('BP/III/3', 'BP/II/5', 'BP/II/5', 'Mean') ]
-
 Lgnd1 <- c('BP/III/3', 'BP/II/5', 'BP/II/5', 'Mean')
+
 ggplot(BP_GW_l1, aes(x = date)) + 
   geom_line(aes(y = hldnrm.x, color = 'BP/III/3' )) + 
   geom_line(aes(y = hldnrm.y, color = 'BP/II/5')) + 
@@ -43,16 +44,7 @@ ggplot(BP_GW_l1, aes(x = date)) +
   theme(legend.title = element_blank())
 
 
-# # level 2 second closest to the river
-# BP_I_3 <- GroundWater[ID == '901288001062213',][, hldnrm := scale(hladina)]
-# BP_GW_l2 <- BP_I_3
-# 
-# ggplot(BP_GW_l2) + 
-#   geom_line(aes(date, hldnrm), size = 1) +
-#   labs(x = "Time", y = "GW level", title = "Level 2; BP")
-
-
-# level 2 second closest to the river
+# level 2, second closest level to the river
 BP_III_2 <- GroundWater[ID == '901288001062282',][, hldnrm := scale(hladina)]
 BP_II_4 <- GroundWater[ID == '901288001062292',][, hldnrm := scale(hladina)]
 
@@ -68,8 +60,7 @@ ggplot(BP_GW_l2) +
   theme(legend.title = element_blank())
 
 
-
-# level 3 second closest to the river
+# level 3, 3rd closest to the river
 BP_III_1 <- GroundWater[ID == '901288001062288',][, hldnrm := scale(hladina)]
 BP_II_3 <- GroundWater[ID == '901288001062279',][, hldnrm := scale(hladina)]
 
@@ -85,8 +76,7 @@ ggplot(BP_GW_l3) +
   theme(legend.title = element_blank())
 
 
-# level 4 second closest to the river
-
+# level 4, 4th closest level to the river
 BP_II_2 <- GroundWater[ID == '901288001062296',][, hldnrm := scale(hladina)]
 BP_II_1 <- GroundWater[ID == '901288001062283',][, hldnrm := scale(hladina)]
 BP_GW_l4 <- merge(BP_II_2, BP_II_1, by = 'date')
@@ -103,7 +93,7 @@ ggplot(BP_GW_l4) +
   
 #===============================================================================
 # Extracting cell values for each polygon and calculating the weight or contribution of 
-# each GW level in each polygon.
+#each GW level in each polygon.
 
 setwd("D:/project")
 getwd()
@@ -117,23 +107,15 @@ poly=vect(poly) # changing sf object into the terra object
 plot(Rasterlvl)
 plot(p ,add=TRUE)
 
-# plot(poly)
-# poly=st_transform(poly,4326)
-# plot(rvk)
-# cls=terra::cells(Rasterlvl,poly, touches=TRUE)
-# e =terra::extract(Rasterlvl, cls[,'cell']) # raster, cell numbers
 dta =terra::extract(Rasterlvl, poly) # raster, cell numbers
-# dta =data.table(ID =cls[,1], Rasterlvl= e[,1])
-class(dta)
 dta <- as.data.table(dta)
-# dta$BP_Level1CZ <- as.factor(dta$BP_Level1CZ)
 
 ggplot(dta[ID==4,], aes(BP_Level1CZ)) + 
   geom_bar()
 
+# caluculating the weights (contribution of each level in each HRU)
 lvl <- data.frame(matrix(ncol = 4, nrow = 39))
 colnames(lvl) <- c('w1', 'w2', 'w3', 'w4')
-
 
 for (i in 1:39) {
   d <- dta[ID==i,]
@@ -149,7 +131,10 @@ p <- cbind(poly , lvl)
 p <- st_as_sf(p)
 plot(p)
 names(p)
-# st_write(p, "D:/project/Aamlie_Paper/GIS/BP_D_WGS.shp")
+
+# Saving the shape file with weight columns that shows the percentage of 
+#contribution of each level in each HRU  
+st_write(p, "D:/project/Aamlie_Paper/GIS/BP_D_WGS.shp")
 
 
 plory <- rbind(plory , lvl)
@@ -169,8 +154,6 @@ KS_county_sf <-
 )
 plot(KS_county_sf)
 
-
-################################################################################
 ################################################################################
 # Calculating GW level time series for each HRU in BP_D
 
@@ -212,8 +195,9 @@ for (i in 1:39){
 ggplot(data.frame(GW_BP_TSs[[1]]), aes(x = date)) + 
   geom_line(aes(y = GW_level))
 
-saveRDS(GW_BP_TSs,  file = "D:/project/Setups_For_Dist_Model/inputs/Soil_input_data/SoilMoist_Groundwater/GW_HRUs.rds")
-# dta <- readRDS(file ="D:/project/Setups_For_Dist_Model/inputs/Soil_input_data/SoilMoist_Groundwater/GW_HRUs.rds")
+# saveRDS(GW_BP_TSs,  file = "D:/project/Setups_For_Dist_Model/inputs/Soil_input_data/SoilMoist_Groundwater/GW_HRUs.rds")
+dta <- readRDS(file ="D:/project/Setups_For_Dist_Model/inputs/Soil_input_data/SoilMoist_Groundwater/GW_HRUs.rds")
+
 dta <- data.frame(GW_BP_TSs[[1]])
 for (i in 2:39){
   dta <- rbind(dta ,data.frame(GW_BP_TSs[[i]])) 
@@ -227,7 +211,7 @@ P + facet_wrap(~HruId, ncol = 6)
 
 ################################################################################
 ################################################################################
-# Producing GW level time series for each HRU in BP_S
+# Producing GW level time series for each HRU in BP_S (The same procedure as BP_D)
 
 Rasterlvl = terra::rast("D:/project/Aamlie_Paper/GIS/BP_LevelWGS.tif")
 poly = st_read("D:/project/Aamlie_Paper/GIS/BP_S_WGS.shp") # it is an sf object and terra doesn't like it
@@ -238,16 +222,10 @@ poly = vect(poly) # changing sf object into the terra object
 plot(Rasterlvl)
 plot(poly ,add=TRUE)
 
-# plot(poly)
-# poly=st_transform(poly,4326)
-# plot(rvk)
-# cls=terra::cells(Rasterlvl,poly, touches=TRUE)
-# e =terra::extract(Rasterlvl, cls[,'cell']) # raster, cell numbers
 dta = terra::extract(Rasterlvl, poly) # raster, cell numbers
-# dta =data.table(ID =cls[,1], Rasterlvl= e[,1])
+
 class(dta)
 dta <- as.data.table(dta)
-# dta$BP_Level1CZ <- as.factor(dta$BP_Level1CZ)
 
 ggplot(dta[ID==4,], aes(BP_LevelWGS)) + 
   geom_bar()
@@ -325,9 +303,6 @@ P <- ggplot(dta, aes(x = date)) +
 P + facet_wrap(~HruId, ncol = 6)
 
 
-
- 
-# BP_GW_l1[, .(hldnrm, hldnrm.x, hldnrm.y, GWfluc)=c('BP/III/3', 'BP/II/5', 'BP/II/5', 'Mean') ]
 
 Lgnd1 <- c('BP/III/3', 'BP/II/5', 'BP/II/5', 'Mean')
 ggplot(BP_GW_l1, aes(x = date)) +
