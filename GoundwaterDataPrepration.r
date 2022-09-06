@@ -80,7 +80,7 @@ for (i in 1:length(GW_TSs)) {
 
 # plotting 
 dta <- data.frame(GW_TSs_daily[[1]])
-for (i in 2:length(GW_TSs_daily[[1]]$ID)){
+for (i in 2:45){
   dta <- rbind(dta ,data.frame(GW_TSs_daily[[i]])) 
 }
 
@@ -88,6 +88,14 @@ ggplot(data = dta) + geom_line(aes(x = date, y = value)) + facet_wrap(~ID, ncol 
 
 ggplot(data = dta) + geom_line(aes(x = date, y = value, color = ID)) + 
   theme(legend.position="none")
+
+for(j in 1:45){
+  GW_TS <- data.table(GW_TSs_daily[[j]])
+  p <- ggplot() + geom_line(data = GW_TS, aes(x = date, y = value)) +
+    ggtitle(paste0('Sensor ', as.character(j)))
+  ggsave(filename = paste0(j, '.png'), plot = p, path = "C:/Users/Hossein/OneDrive/Desktop/R/Sensors/New sensors/",
+         width = 30, height = 15, units = 'cm')
+}
 
 
 # Files <- gsub('-2022-08-28 ', '-', Files)
