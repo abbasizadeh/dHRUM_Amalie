@@ -5,9 +5,10 @@ library(dplyr)
 library(data.table)
 library(ggplot2)
 library(cowplot)
+library(rstudioapi)
 
 
-setwd("D:/project/Setups_For_Dist_Model/inputs/Soil_input_data")
+setwd(paste0(dirname(getActiveDocumentContext()$path),"/dHRUM_setup/inputs/Soil_input_data"))
 getwd()
 
 GroundWater <- as.data.table(read.fst("vrty.fst")) %>% dcast(ID + date ~ variable, value.var = "value")

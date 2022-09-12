@@ -1,7 +1,10 @@
 library(data.table)
 library(ggplot2)
+library(rstudioapi)
 
-setwd('D:/Project/Amalie_Paper')
+setwd(paste0(dirname(getActiveDocumentContext()$path), ''))
+
+setwd('..')
 getwd()
 
 # the directory of the downloaded csv file
@@ -12,7 +15,7 @@ FilePath <- paste0('./GWdata/', Files)
 GW_TSs <- lapply(FilePath, read.csv)
 GW_TSs <- lapply(GW_TSs, as.data.table)
 
-# function for decomposing Time column into date and time columns
+# Function for decomposing Time column into date and time columns
 # Time column format: 2022-05-10 12:51:22
 FUN = function(x){
   x$date <- as.Date(x$Time)
@@ -28,7 +31,6 @@ for(i in 1:length(Files)){
   GW_TSs[[i]]$month <- lubridate::month(GW_TSs[[i]]$date)
   GW_TSs[[i]]$year <- lubridate::year(GW_TSs[[i]]$date)
   GW_TSs[[i]]$ID <- rep(Name[i], length(GW_TSs[[i]]$day))
-  
   names(GW_TSs[[i]]) <- c('Time', 'value', 'date', 'day', 'month', 'year','ID')
     }
 
@@ -51,7 +53,7 @@ for(i in 1:length(Files2)){
   GW_TSs[[length(Files)+i]]$day <- lubridate::day(GW_TSs[[length(Files)+i]]$date)
   GW_TSs[[length(Files)+i]]$month <- lubridate::month(GW_TSs[[length(Files)+i]]$date) 
   GW_TSs[[length(Files)+i]]$year <- lubridate::year(GW_TSs[[length(Files)+i]]$date)
-  GW_TSs[[length(Files)+i]]$ID <- rep(Name[i], length(GW_TSs[[length(Files)+i]]$day))
+  GW_TSs[[length(Files)+i]]$ID <- rep(Name2[i], length(GW_TSs[[length(Files)+i]]$day))
   names(GW_TSs[[length(Files)+i]]) <- c('Time', 'value', 'date', 'day', 'month', 'year','ID') 
 }
 
@@ -89,13 +91,26 @@ ggplot(data = dta) + geom_line(aes(x = date, y = value)) + facet_wrap(~ID, ncol 
 ggplot(data = dta) + geom_line(aes(x = date, y = value, color = ID)) + 
   theme(legend.position="none")
 
-for(j in 1:45){
-  GW_TS <- data.table(GW_TSs_daily[[j]])
-  p <- ggplot() + geom_line(data = GW_TS, aes(x = date, y = value)) +
-    ggtitle(paste0('Sensor ', as.character(j)))
-  ggsave(filename = paste0(j, '.png'), plot = p, path = "C:/Users/Hossein/OneDrive/Desktop/R/Sensors/New sensors/",
-         width = 30, height = 15, units = 'cm')
+# for(j in 1:45){
+#   GW_TS <- data.table(GW_TSs_daily[[j]])
+#   p <- ggplot() + geom_line(data = GW_TS, aes(x = date, y = value)) +
+#     ggtitle(paste0('Sensor ', as.character(j)))
+#   ggsave(filename = paste0(j, '.png'), plot = p, path = "C:/Users/Hossein/OneDrive/Desktop/R/Sensors/New sensors/",
+#          width = 30, height = 15, units = 'cm')
+# }
+
+IDs <-  data.frame(row.names = seq(1,45))
+IDs$ID <- NaN
+
+ggplot() + geom_line(data = GW_TSs_daily[[13]], aes(x= date, y = value), color = "red") + 
+geom_line(data = GW_TSs_daily[[14]], aes(x= date, y = value))
+
+ggplot() + geom_line(data = GW_TSs_daily[[1]], aes(x= date, y = value), color = "red") + 
+geom_line(data = GW_TSs_daily[[45]], aes(x= date, y = value))
+
+for (i in 1:45){
+  IDs[i,] <- GW_TSs_daily[[i]]$ID[1]
 }
-
-
+IDs
+write.csv(IDs, file = "C:/Users/Hossein/OneDrive/Desktop/IDs.csv")
 # Files <- gsub('-2022-08-28 ', '-', Files)
