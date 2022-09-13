@@ -5,6 +5,7 @@ library(dHRUM)
 library(ggplot2)
 library(ggpubr)
 library(sf)
+library(cowplot)
 library(rstudioapi)
 
 
@@ -29,7 +30,7 @@ dtaDF <- as.data.table(readRDS ("./inputs/PT_intput_data/BP_D_FG_2021.rds"))
 dtaDF <- dtaDF[DTM >= as.Date("2020-01-01"), ]
 setPTInputsToDistdHRUM(dHRUM_ptr = dhrusBP_D_FG, dtaDF) #look at the help
 
-source("./Catchment_divides/BP_D/Constrained_Parameters_BP_D.r")
+# source("./Catchment_divides/BP_D/Calibration/Constrained_Parameters_BP_D.r")
 
 # Checking
 ParDFup1[c("SDIV", "CDIV")]
@@ -104,18 +105,11 @@ names(dF) <- dta$VarsNams
 simBest=as.numeric(quantile(dF$TOTR,probs = (1-p_OBS), na.rm = TRUE))
 
 
-# saveRDS(dta,file ="D:/project/Setups_For_Dist_Model/outputs/HeatMap/BP_D_Exp.rds")
-
-# saveRDS(ParBestDF,file ="D:/project/Setups_For_Dist_Model/outputs/SM&GW_SalibratedParams/BP_D_FG.rds")
-# saveRDS(ParBestDF,file ="D:/project/Setups_For_Dist_Model/outputs/SM&GW_SalibratedParams/BP_D_FG_GW.rds")
-# saveRDS(ParBestDF,file ="D:/project/Setups_For_Dist_Model/outputs/SM&GW_SalibratedParams/BP_D_FG_SM.rds")
-
-
 FDC <- data.frame(cbind(p_OBS, RmBP, simBest))
 
 colors <- c("Measured" = "black", "dHRUM" = "red")
 ggplot(FDC , aes(x = p_OBS)) + 
-  geom_point(aes(y = RmBP, color = "Measured"), color = "black", size = 3) + 
+  geom_point(aes(y = RmBP, color = "Measured"), size = 3) + 
   geom_point(aes(y = simBest, color = "dHRUM"), size = 3) + 
   labs(x = "P(Qm)", y = "Qm [mm/day]", title = "FDC curvs of Simulation and Observed runoff (BP_D_FG)") +
   theme_bw() + 
@@ -130,6 +124,7 @@ hydroGOF::mae(FDC$simBest, FDC$RmBP)
 hydroGOF::NSE(FDC$simBest, FDC$RmBP)
 hydroGOF::KGE(FDC$simBest, FDC$RmBP)
 
+
 #================ Plotting================
 # dHRUMrunDist
 dtaDist<-dHRUMrunDist(dHRUM_ptr = dhrusBP_D_FG)
@@ -137,31 +132,59 @@ dF_Dist <- data.frame(dtaDist$outDta)
 names(dF_Dist) <- dta$VarsNams
 dF_Dist$HruIds <- dtaDist$Ids
 dF_t <- as.data.table(dF_Dist)
-dF_t$dat <- as.Date(with(dF_t, paste(YEAR, MONTH, DAY,sep="-")), "%Y-%m-%d")
-dF_t$Month <- months(dF_t$dat)
-dF_t$Year <- format(dF_t$dat,format="%y")
+dF_t$date <- as.Date(with(dF_t, paste(YEAR, MONTH, DAY,sep="-")), "%Y-%m-%d")
+dF_t$Month <- months(dF_t$date)
+dF_t$Year <- format(dF_t$date,format="%y")
 #names(dF_t)
 
 GW_list <- readRDS(file ="./inputs/Soil_input_data/SoilMoist_Groundwater/GW_HRUs.rds")  
 
 
-# plotting 
+# plotting
+
 for(j in 1:39){
-GW_TS <- data.table(GW_list[[j]])
-HruId1 <- dF_t[HruIds==j, ]
+  
+  GW_TS <- data.table(GW_list[[j]])
+  HruId1 <- dF_t[HruIds==j, ]
+  
+# plot of simulated and measured groundwater 
+  Groundwater <- ggplot() + 
+    geom_line(data = HruId1, aes(date, scale(GROS), color = "dHRUM" ), size = 0.6) +
+    geom_line(data = GW_TS, aes(date, GW_level, color = "Measured"), size = 0.6) + 
+    ylab("Groundwater variation [mm]") +
+    theme_bw() +  theme(axis.title.x= element_blank(),
+                        panel.border = element_blank(),
+                        axis.text = element_text(size = 15),
+                        legend.position = "bottom", 
+                        legend.title = element_blank())
+  
+# Precipitation 
+  Precipitation <- ggplot(data = HruId1) + geom_bar(aes(x = date, y = PREC), stat="identity", col = "blue") + theme_bw() +
+    ylab("PREC [mm/day]") + scale_y_reverse() +
+    theme_bw() + theme(axis.title.x= element_blank(),
+                        axis.text.x = element_blank(),
+                        axis.ticks.x= element_blank(),
+                        axis.line   = element_blank(),
+                        panel.border = element_blank(),
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        axis.text = element_text(size = 15)) +
+    geom_hline(yintercept = 0, linetype = "solid", color = "black") +
+    ggtitle(paste0("Groundwater HRU ", j))
+  
+  
+  Plot = plot_grid(Precipitation, Groundwater, ncol = 1, align = "v", rel_heights = c(1.5, 3))
 
-p <- ggplot() + geom_line(data = HruId1, aes(dat, scale(GROS))) +
-  geom_line(data = GW_TS, aes(date, GW_level), color = 'red') + 
-  ggtitle(paste0('HRU ', as.character(j)))
-
-ggsave(filename = paste0(j, '.png'), plot = p, path = "./Catchment_divides/BP_D/",
-       width = 30, height = 15, units = 'cm')
+ ggsave(filename = paste0(j, '.png'), plot = Plot, path = "./Catchment_divides/BP_D/",
+        width = 30, height = 15, units = 'cm')
 }
 
 ggplot(data = dF_t) +
   geom_line(aes(dat, GROS)) +
   facet_wrap(~HruIds, ncol = 6)
 
+
+# calculating sum of monthly fluxes and mean of storage s for visualization 
 
 MeanInput <- dF_t[, .(m_prec = mean(PREC), m_temp = mean(TEMP)), by= .(HruIds, Month, Year)]
 # head(MeanInput)

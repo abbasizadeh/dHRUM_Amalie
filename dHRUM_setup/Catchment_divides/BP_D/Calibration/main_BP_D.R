@@ -4,8 +4,8 @@ library(RcppDE)
 library(dHRUM)
 library(dplyr)
 library(hydroGOF)
-library(gridExtra)
 library(cowplot)
+# library(gridExtra)
 
 
 setwd(dirname(getActiveDocumentContext()$path))
@@ -81,8 +81,7 @@ for (i in 1:39){
   # ggplot() + geom_line(data = dF_t, aes(date, scale(GROS))) +
   #   geom_line(data = GW_TS, aes(date, GW_level), color = 'red') +
   #   ggtitle(paste0('HRU ', as.character(i)))
-   
-
+  
 #------------------------- Plotting --------------------------------
   
   dF_t <- as.data.table(dF_t)
@@ -100,9 +99,11 @@ for (i in 1:39){
   Mtr_dF[i, 2] <- hydroGOF::NSE(GW[, stdGROS], GW[, GW_level])
   Mtr_dF[i, 3] <- hydroGOF::KGE(GW[, stdGROS], GW [, GW_level])
   # sort(unique(GW_TS$HruId))
+  
 }
 names(Mtr_dF) <- c('Cor', 'GOF', 'KGE')
 Mtr_dF
+write.csv(x = Mtr_dF, file = "./Results.csv")
 
 colors <- c("Measured" = "black", "dHRUM" = "red")
 P1 <- ggplot(GW, aes(x = date)) + 
