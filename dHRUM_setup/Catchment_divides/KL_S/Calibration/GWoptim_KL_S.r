@@ -1,5 +1,5 @@
 # loading Groundwater data (available for each HRU)  
-GW_list <- readRDS(file ="./inputs/Soil_input_data/SoilMoist_Groundwater/GW_KL_S_HRUs.rds")  
+GW_list <- readRDS(file ="./Rscripts/dHRUM_setup/inputs/Soil_input_data/SoilMoist_Groundwater/GW_KL_S_HRUs.rds")  
 
 for(i in 1:29) {
   # Calculating parameters for each HRU (using lumped model)
@@ -76,5 +76,5 @@ for(i in 1:29) {
   names(ParBestGW) <- ParNams
   
   
-  # saveRDS(ParBestGW, paste0("./outputs/SM&GW_SalibratedParams/Pars_KL_S_FG_GW_", i))
+  # saveRDS(ParBestGW, paste0("./Rscripts/dHRUM_setup/outputs/SM&GW_SalibratedParams/Pars_KL_S_FG_GW_", i))
 }

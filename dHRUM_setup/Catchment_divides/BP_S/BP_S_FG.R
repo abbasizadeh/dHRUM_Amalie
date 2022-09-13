@@ -5,16 +5,10 @@ library(dHRUM)
 library(ggplot2)
 library(ggpubr)
 library(sf)
-library(rstudioapi)
-
-
-setwd(dirname(getActiveDocumentContext()$path))
-setwd("..")
-setwd("..")
 
 getwd()
 
-dtHrus <- as.data.table(read.csv("./inputs/Soil_input_data/Forest_Geo/BP_Soil_FG.csv"))
+dtHrus <- as.data.table(read.csv("./Rscripts/dHRUM_setup/inputs/Soil_input_data/Forest_Geo/BP_Soil_FG.csv"))
 SoilBP <- dtHrus #[Povodi=='BP',]
 NhrusBP <- nrow(SoilBP)
 
@@ -24,11 +18,11 @@ IdsHrus <- SoilBP$FID
 dhrusBP_S_FG <- initdHruModel(nHrus,Areas,IdsHrus)
 setGWtypeToAlldHrus(dHRUM_ptr = dhrusBP_S_FG,gwTypes=rep("LIN_RES", times=nHrus),hruIds=IdsHrus)
 setSoilStorTypeToAlldHrus(dHRUM_ptr = dhrusBP_S_FG,soilTypes=rep("PDM",times=nHrus),hruIds=IdsHrus)
-dtaDF <- as.data.table(readRDS ("./inputs/PT_intput_data/BP_S_FG_2021.rds"))
+dtaDF <- as.data.table(readRDS ("./Rscripts/dHRUM_setup/inputs/PT_intput_data/BP_S_FG_2021.rds"))
 dtaDF <- dtaDF[DTM >= as.Date("2020-01-01"), ]
 setPTInputsToDistdHRUM(dHRUM_ptr = dhrusBP_S_FG, dtaDF)
 
-# source("./Catchment_divides/BP_S/Constrained_Parameters_BP_S.r")
+# source("./Rscripts/dHRUM_setup/Catchment_divides/BP_S/calibration/Constrained_Parameters_BP_S.r")
 
 # # Checking
 # ParDFup1[c("SDIV", "CDIV")]
@@ -48,12 +42,12 @@ p_OBS = dny/365.25
 RaBP = 96# odhad Martin Hanel
 QmBP = c(26, 18, 14, 12, 10, 8.0, 7.0, 6.0, 4.5, 3.5, 2.5, 1.0, 0.5)
 A=sum(SoilBP$Area)# plocha BP
-RmBP = QmBP * (3600*24) / A #CHMU ZHU 4.42 v datech SoilBP 4.41   mm/day
+Rm = QmBP * (3600*24) / A #CHMU ZHU 4.42 v datech SoilBP 4.41   mm/day
 
 
-parsDF <- readRDS(paste0("./outputs/SM&GW_CalibratedParams/Pars_BP_S_FG_GW_", '1'))
+parsDF <- readRDS(paste0("./Rscripts/dHRUM_setup/outputs/SM&GW_CalibratedParams/Pars_BP_S_FG_GW_", '1'))
 for (i in 2:38){
-  P <- readRDS(paste0("./outputs/SM&GW_CalibratedParams/Pars_BP_S_FG_GW_", i))
+  P <- readRDS(paste0("./Rscripts/dHRUM_setup/outputs/SM&GW_CalibratedParams/Pars_BP_S_FG_GW_", i))
   parsDF <- rbind(parsDF, P)
 }
 
@@ -103,25 +97,6 @@ simBest = as.numeric(quantile(dF$TOTR,probs=(1-p_OBS), na.rm = TRUE))
 
 
 # saveRDS(dta,file ="D:/project/Setups_For_Dist_Model/outputs/HeatMap/BP_S_Exp.rds")
-# # Plotting and comparing
-FDC <- data.frame(cbind(p_OBS, RmBP, simBest))
-
-colors <- c("Measured" = "black", "dHRUM" = "red")
-ggplot(FDC , aes(x = p_OBS)) + 
-  geom_point(aes(y = RmBP, color = "Measured"), color = "black", size = 3) + 
-  geom_point(aes(y = simBest, color = "dHRUM"), size = 3) + 
-  labs(x = "P(Qm)", y = "Qm [mm/day]", title = "FDC curvs of Simulation and Observed runoff (BP_S_FG)") +
-  theme_bw() + 
-  theme(legend.position = "bottom", legend.title = element_blank(), 
-        axis.text = element_text(size = 15)) + 
-  scale_color_manual(values = colors)
-
-
-hydroGOF::mae(FDC$simBest, FDC$RmBP)
-hydroGOF::NSE(FDC$simBest, FDC$RmBP)
-hydroGOF::KGE(FDC$simBest, FDC$RmBP)
-
-
 
 #================ Plotting================
 # dHRUMrunDist
@@ -130,51 +105,35 @@ dF_Dist <- data.frame(dtaDist$outDta)
 names(dF_Dist) <- dta$VarsNams
 dF_Dist$HruIds <- dtaDist$Ids
 dF_t <- as.data.table(dF_Dist)
-dF_t$dat <- as.Date(with(dF_t, paste(YEAR, MONTH, DAY,sep="-")), "%Y-%m-%d")
+dF_t$date<- as.Date(with(dF_t, paste(YEAR, MONTH, DAY,sep="-")), "%Y-%m-%d")
 dF_t$Month <- months(dF_t$dat)
 dF_t$Year <- format(dF_t$dat,format="%y")
 # names(dF_t)
 
-GW_list <- readRDS(file ="./inputs/Soil_input_data/SoilMoist_Groundwater/GW_BP_S_HRUs.rds")  
-
-for(j in 1:38){
-  GW_TS <- data.table(GW_list[[j]])
-  HruId1 <- dF_t[HruIds==j, ]
-  
-  p <- ggplot() + geom_line(data = HruId1, aes(dat, scale(GROS))) +
-    geom_line(data = GW_TS, aes(date, GW_level), color = 'red') + 
-    ggtitle(paste0('HRU ', as.character(j)))
-  
-  ggsave(filename = paste0(j, '.png'), plot = p, path = "./Catchment_divides/BP_S/",
-  width = 30, height = 15, units = 'cm')
-}
-
-ggplot(data = dF_t) +
-  geom_line(aes(dat, GROS)) +
-  facet_wrap(~HruIds, ncol = 6)
+GW_list <- readRDS(file ="./Rscripts/dHRUM_setup/inputs/Soil_input_data/SoilMoist_Groundwater/GW_BP_S_HRUs.rds")  
 
 
-MeanFluxes <- dF_t[, .(mn_Runoff = sum(TOTR),
-                       mn_DirectRunoff = sum(DIRR),
-                       mn_BaseFlow = sum(BASF),
-                       mn_Percolation = sum(PERC),
-                       mn_StemFlow = sum(STEF),
-                       mn_CanopyFlow = sum(CANF),
-                       mn_ThroughFall = sum(TROF),
-                       mn_Melting = sum(MELT),
-                       mn_ActualEva = sum(AET),
-                       mn_PotentailEva = sum(PET),
-                       mn_CanopyEvap = sum(EVAC),
-                       mn_StemEvap = sum(EVAS),
-                       mn_BareSoilEvap = sum(EVBS)),
-                   by= .(HruIds, Month, Year)]
-
-
-
-MeanStorages <- dF_t[, .(mn_CanopyStorage = mean(CANS),
-                         mn_StemStorage = mean(STES),
-                         mn_InterceptionStorage = mean(INTS),
-                         mn_SoilStorage = mean(SOIS),
-                         mn_GroundwaterStorage = mean(GROS),
-                         mn_SurfaceRetention = mean(SURS)),
-                     by = .(HruIds, Month, Year)]
+# MeanFluxes <- dF_t[, .(mn_Runoff = sum(TOTR),
+#                        mn_DirectRunoff = sum(DIRR),
+#                        mn_BaseFlow = sum(BASF),
+#                        mn_Percolation = sum(PERC),
+#                        mn_StemFlow = sum(STEF),
+#                        mn_CanopyFlow = sum(CANF),
+#                        mn_ThroughFall = sum(TROF),
+#                        mn_Melting = sum(MELT),
+#                        mn_ActualEva = sum(AET),
+#                        mn_PotentailEva = sum(PET),
+#                        mn_CanopyEvap = sum(EVAC),
+#                        mn_StemEvap = sum(EVAS),
+#                        mn_BareSoilEvap = sum(EVBS)),
+#                    by= .(HruIds, Month, Year)]
+# 
+# 
+# 
+# MeanStorages <- dF_t[, .(mn_CanopyStorage = mean(CANS),
+#                          mn_StemStorage = mean(STES),
+#                          mn_InterceptionStorage = mean(INTS),
+#                          mn_SoilStorage = mean(SOIS),
+#                          mn_GroundwaterStorage = mean(GROS),
+#                          mn_SurfaceRetention = mean(SURS)),
+#                      by = .(HruIds, Month, Year)]

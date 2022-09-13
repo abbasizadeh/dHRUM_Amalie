@@ -7,38 +7,30 @@ library(hydroGOF)
 library(gridExtra)
 library(cowplot)
 
-
-setwd(dirname(getActiveDocumentContext()$path))
-setwd("..")
-setwd("..")
-setwd("..")
 getwd()
 
 # number of HRUs
 nHrus <- 23
 
-source("./Catchment_divides/KL_D/Calibration/Constrained_Parameters_KL_D.r")
+source("./Rscripts/dHRUM_setup/Catchment_divides/KL_D/Calibration/Constrained_Parameters_KL_D.r")
 
-# Calibration for GW:  KS(0, 0.1), CAN_ST(0, 3), and STEM_ST(0, 2)
-
-# Calibration for SM : KS(0, 1), CAN_ST(0, 5) and STEM_ST(0, 4)
-dtHrus <- as.data.table(read.csv("./inputs/Soil_input_data/Forest_Geo/KL_Drainage_FG.csv"))
+dtHrus <- as.data.table(read.csv("./Rscripts/dHRUM_setup/inputs/Soil_input_data/Forest_Geo/KL_Drainage_FG.csv"))
   
-dtaDF <- as.data.table(readRDS ("./inputs/PT_intput_data/KL_D_FG_2021.rds"))
+dtaDF <- as.data.table(readRDS ("./Rscripts/dHRUM_setup/inputs/PT_intput_data/KL_D_FG_2021.rds"))
 dtaDF_main <- dtaDF[DTM >= as.Date("2021-01-01"), ]
   
 # Calibrating model for GW only
-source("./Catchment_divides/KL_D/Calibration/GWoptim_KL_D.r")
+source("./Rscripts/dHRUM_setup/Catchment_divides/KL_D/Calibration/GWoptim_KL_D.r")
 # ParBestGW <- readRDS(paste0("./outputs/SM&GW_SalibratedParams/Pars_KL_D_FG_GW_", i))
 
 
 
 # Running dHRUM using caculated parameters
-GW_list <- readRDS(file ="./inputs/Soil_input_data/SoilMoist_Groundwater/GW_KL_D_HRUs.rds")  
+GW_list <- readRDS(file ="./Rscripts/dHRUM_setup/inputs/Soil_input_data/SoilMoist_Groundwater/GW_KL_D_HRUs.rds")  
 Mtr_dF <- data.frame()
 
 for (i in 1:23){
-  ParBestDF <- readRDS(paste0("./outputs/SM&GW_CalibratedParams/Pars_KL_D_FG_GW_", i))
+  ParBestDF <- readRDS(paste0("./Rscripts/dHRUM_setup/outputs/SM&GW_CalibratedParams/Pars_KL_D_FG_GW_", i))
   
   SoilKL <- dtHrus[FID == i,]
   NhrusKL <- nrow(SoilKL)

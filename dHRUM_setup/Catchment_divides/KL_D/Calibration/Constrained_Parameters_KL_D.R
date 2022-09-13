@@ -2,7 +2,7 @@ library(data.table)
 
 
 # Parameters (For Building)
-dtHrus <- as.data.table(read.csv("./inputs/Soil_input_data/Forest_Geo/KL_Drainage_FG.csv"))
+dtHrus <- as.data.table(read.csv("./Rscripts/dHRUM_setup/inputs/Soil_input_data/Forest_Geo/KL_Drainage_FG.csv"))
 SoilKL <- dtHrus #[Povodi=='KL',]
 NhrusKL <- nrow(SoilKL)
 
@@ -30,7 +30,7 @@ for(i in 1:(nHrus-1)){
 # Parameter constraints
 
 # Constraining ADIV using Normalized Slope,
-SlopeDist <- readRDS(file ="./outputs/SlopeDist_KL_D_FG.rds")
+SlopeDist <- readRDS(file ="./Rscripts/dHRUM_setup/outputs/SlopeDist_KL_D_FG.rds")
 # write.csv(SlopeDist,"./setups_with_opt/KL_D_FG/Slope.csv", row.names = F)
 
 
@@ -40,7 +40,7 @@ indexW <- which(SoilKL$Land_Use=="Wetland")
 
 # Soil Storage
 # C_Max, CMIN and B_Soil
-CCB <- readRDS(file ="./outputs/CCB_KL_D_FG.rds")
+CCB <- readRDS(file ="./Rscripts/dHRUM_setup/outputs/CCB_KL_D_FG.rds")
 
 # difference between C_max and C_min
 C_diff <- (CCB$Cmax-CCB$Cmin)
@@ -117,7 +117,7 @@ ParDFup1$SDIV[indexW] <- 0.4
 ParDFlow1$SDIV[indexW] <- 0.01
 
 # Constraining RETCAP
-SDC = readRDS(file = "./outputs/SDC_KL_D_FG.rds")
+SDC = readRDS(file = "./Rscripts/dHRUM_setup/outputs/SDC_KL_D_FG.rds")
 ParDFup1$RETCAP[indexF] <- SDC$SDC_2[indexF]*10 - ((SDC$SDC_2[indexF]*10) * 0.20)
 ParDFlow1$RETCAP[indexF] <- SDC$SDC_2[indexF]*10 - ((SDC$SDC_2[indexF]*10) * 0.40)
 

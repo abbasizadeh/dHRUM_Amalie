@@ -5,13 +5,14 @@ library(dHRUM)
 library(dplyr)
 library(hydroGOF)
 library(cowplot)
+library(rstudioapi)
 # library(gridExtra)
 
 
-setwd(dirname(getActiveDocumentContext()$path))
-setwd("..")
-setwd("..")
-setwd("..")
+# setwd(dirname(getActiveDocumentContext()$path))
+# setwd("..")
+# setwd("..")
+# setwd("..")
 getwd()
 
 # number of HRUs
@@ -19,13 +20,13 @@ nHrus <- 39
 
 
 # Defining upper and lower bound for Params 
-source("./Catchment_divides/BP_D/Calibration/Constrained_Parameters_BP_D.r")
+source("./Rscripts/dHRUM_setup/Catchment_divides/BP_D/Calibration/Constrained_Parameters_BP_D.r")
 
 #Area, Lat
-dtHrus <- as.data.table(read.csv("./inputs/Soil_input_data/Forest_Geo/BP_Drainage_FG.csv"))
+dtHrus <- as.data.table(read.csv("./Rscripts/dHRUM_setup/inputs/Soil_input_data/Forest_Geo/BP_Drainage_FG.csv"))
 
 #Input data
-dtaDF <- as.data.table(readRDS ("./inputs/PT_intput_data/BP_D_FG_2021.rds"))
+dtaDF <- as.data.table(readRDS ("./Rscripts/dHRUM_setup/inputs/PT_intput_data/BP_D_FG_2021.rds"))
 dtaDF_main <- dtaDF[DTM >= as.Date("2020-01-01"), ]
 
 
@@ -33,14 +34,14 @@ dtaDF_main <- dtaDF[DTM >= as.Date("2020-01-01"), ]
 # rngSM <- range(SM_TS[OBJECTID == i, date])
 
 # Calibrating model for GW 
-source("./Catchment_divides/BP_D/Calibration/GWoptim_BP_D.r")
+source("./Rscripts/dHRUM_setup/Catchment_divides/BP_D/Calibration/GWoptim_BP_D.r")
 
 
 # Running dHRUM using calculated parameters
-GW_list <- readRDS(file ="./inputs/Soil_input_data/SoilMoist_Groundwater/GW_HRUs.rds")  
+GW_list <- readRDS(file ="./Rscripts/dHRUM_setup/inputs/Soil_input_data/SoilMoist_Groundwater/GW_HRUs.rds")  
 Mtr_dF <- data.frame()
 for (i in 1:39){
-  ParBestDF <- readRDS(paste0("./outputs/SM&GW_CalibratedParams/Pars_BP_D_FG_GW_", i))
+  ParBestDF <- readRDS(paste0("./Rscripts/dHRUM_setup/outputs/SM&GW_CalibratedParams/Pars_BP_D_FG_GW_", i))
   
   # ParBestDF$KS <- 0.02
   SoilBP <- dtHrus[FID == i,]
@@ -103,7 +104,7 @@ for (i in 1:39){
 }
 names(Mtr_dF) <- c('Cor', 'GOF', 'KGE')
 Mtr_dF
-write.csv(x = Mtr_dF, file = "./Results.csv")
+write.csv(x = Mtr_dF, file = "./Rscripts/dHRUM_setup/Results.csv")
 
 colors <- c("Measured" = "black", "dHRUM" = "red")
 P1 <- ggplot(GW, aes(x = date)) + 
