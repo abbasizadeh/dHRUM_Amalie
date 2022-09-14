@@ -115,31 +115,3 @@ GW_list <- readRDS(file ="./Rscripts/dHRUM_setup/inputs/Soil_input_data/SoilMois
 
 
 
-# calculating sum of monthly fluxes and mean of storage s for visualization 
-
-# MeanInput <- dF_t[, .(m_prec = mean(PREC), m_temp = mean(TEMP)), by= .(HruIds, Month, Year)]
-# # head(MeanInput)
-# MeanFluxes <- dF_t[, .(mn_Runoff = sum(TOTR),
-#                        mn_DirectRunoff = sum(DIRR),
-#                        mn_BaseFlow = sum(BASF),
-#                        mn_Percolation = sum(PERC),
-#                        mn_StemFlow = sum(STEF),
-#                        mn_CanopyFlow = sum(CANF),
-#                        mn_ThroughFall = sum(TROF),
-#                        mn_Melting = sum(MELT),
-#                        mn_ActualEva = sum(AET),
-#                        mn_PotentailEva = sum(PET),
-#                        mn_CanopyEvap = sum(EVAC),
-#                        mn_StemEvap = sum(EVAS),
-#                        mn_BareSoilEvap = sum(EVBS)),
-#                    by= .(HruIds, Month, Year)]
-#
-# 
-# 
-# MeanStorages <- dF_t[, .(mn_CanopyStorage = mean(CANS),
-#                          mn_StemStorage = mean(STES),
-#                          mn_InterceptionStorage = mean(INTS),
-#                          mn_SoilStorage = mean(SOIS),
-#                          mn_GroundwaterStorage = mean(GROS),
-#                          mn_SurfaceRetention = mean(SURS)),
-#                      by = .(HruIds, Month, Year)]

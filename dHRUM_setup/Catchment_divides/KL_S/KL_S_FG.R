@@ -99,7 +99,7 @@ dF_Dist <- data.frame(dtaDist$outDta)
 names(dF_Dist) <- dta$VarsNams
 dF_Dist$HruIds <- dtaDist$Ids
 dF_t <- as.data.table(dF_Dist)
-dF_t$dat <- as.Date(with(dF_t, paste(YEAR, MONTH, DAY,sep="-")), "%Y-%m-%d")
+dF_t$date <- as.Date(with(dF_t, paste(YEAR, MONTH, DAY,sep="-")), "%Y-%m-%d")
 dF_t$Month <- months(dF_t$dat)
 dF_t$Year <- format(dF_t$dat,format="%y")
 #names(dF_t)

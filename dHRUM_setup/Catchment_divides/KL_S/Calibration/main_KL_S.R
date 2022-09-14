@@ -93,7 +93,7 @@ for (i in 1:29){
 }
 names(Mtr_dF) <- c('Cor', 'GOF', 'KGE')
 Mtr_dF
-
+# write.csv(Mtr_dF, file = ".//Rscripts/dHRUM_setup/Result_KL_S.csv")
 # #------------------------- Plotting --------------------------------
 
 colors <- c("Measured" = "black", "dHRUM" = "red")

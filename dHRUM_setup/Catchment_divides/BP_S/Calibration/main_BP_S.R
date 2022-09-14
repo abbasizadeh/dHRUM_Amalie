@@ -15,13 +15,16 @@ nHrus <- 38
 
 
 # Defining upper and lower bound for Params 
-source("./Rscripts/dHRUM_setup/Catchment_divides/BP_S/Calibration/Constrained_Parameters_BP_S.r")
+source("./Rscripts/dHRUM_setup/Catchment_divides/BP_S/Calibration/
+       Constrained_Parameters_BP_S.r")
 
 # Area; Lat; 
-dtHrus <- as.data.table(read.csv("./Rscripts/dHRUM_setup/inputs/Soil_input_data/Forest_Geo/BP_Soil_FG.csv"))
+dtHrus <- as.data.table(read.csv("./Rscripts/dHRUM_setup/inputs/Soil_input_data/
+                                 Forest_Geo/BP_Soil_FG.csv"))
 
 # Input data
-dtaDF <- as.data.table(readRDS ("./Rscripts/dHRUM_setup/inputs/PT_intput_data/BP_S_FG_2021.rds"))#   dtaDF <- dtaDF[DTM >= as.Date("2020-01-01"), ]
+dtaDF <- as.data.table(readRDS ("./Rscripts/dHRUM_setup/inputs/PT_intput_data/
+                                BP_S_FG_2021.rds"))#   dtaDF <- dtaDF[DTM >= as.Date("2020-01-01"), ]
 dtaDF_main <- dtaDF[DTM >= as.Date("2020-01-01"), ]
    
 
@@ -31,10 +34,12 @@ source("./Rscripts/dHRUM_setup/Catchment_divides/BP_S/Calibration/BP_S_GWoptim.r
 
 
 # Running dHRUM using calculated parameters
-GW_list <- readRDS(file ="./Rscripts/dHRUM_setup/inputs/Soil_input_data/SoilMoist_Groundwater/GW_BP_S_HRUs.rds")  
+GW_list <- readRDS(file ="./Rscripts/dHRUM_setup/inputs/Soil_input_data/
+                   SoilMoist_Groundwater/GW_BP_S_HRUs.rds")  
 Mtr_dF <- data.frame()
 for (i in 1:38){
-  ParBestDF <- readRDS(paste0("./Rscripts/dHRUM_setup/outputs/SM&GW_CalibratedParams/Pars_BP_S_FG_GW_", i))
+  ParBestDF <- readRDS(paste0("./Rscripts/dHRUM_setup/outputs/
+                              SM&GW_CalibratedParams/Pars_BP_S_FG_GW_", i))
   
 
   SoilBP <- dtHrus[FID == i,]
@@ -69,7 +74,6 @@ for (i in 1:38){
   dF_t$Month <- months(dF_t$date)
   dF_t$Year <- format(dF_t$date,format="%y")
   
-  
   GW_TS <- data.table(GW_list[[i]])
   rngGW <- range(GW_TS[, date])
   
@@ -97,6 +101,8 @@ for (i in 1:38){
 }
 names(Mtr_dF) <- c('Cor', 'GOF', 'KGE')
 Mtr_dF
+
+# write.csv(Mtr_dF, file = ".//Rscripts/dHRUM_setup/Result_BP_S.csv")
 
 colors <- c("Measured" = "black", "dHRUM" = "red")
 
