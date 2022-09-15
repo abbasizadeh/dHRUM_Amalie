@@ -95,8 +95,8 @@ dF <- data.frame(dta$outDta)
 names(dF) <- dta$VarsNams
 simBest = as.numeric(quantile(dF$TOTR,probs=(1-p_OBS), na.rm = TRUE))
 
-
-# saveRDS(dta,file ="D:/project/Setups_For_Dist_Model/outputs/HeatMap/BP_S_Exp.rds")
+# save the lumped model output for producing heatmap 
+# saveRDS(dta,file ="./Rscripts/dHRUM_setup/outputs/HeatMapData/BP_S_GW.rds")
 
 #================ Plotting================
 # dHRUMrunDist

@@ -23,7 +23,7 @@ dtaDF <- dtaDF[DTM >= as.Date("2021-01-01"), ]
 setPTInputsToDistdHRUM(dHRUM_ptr = dhrusKL_D_FG, dtaDF)
 
 
-source("./Rscripts/dHRUM_setup/Catchment_divides/KL_D/Calibration/Constrained_Parameters_KL_D.r")
+# source("./Rscripts/dHRUM_setup/Catchment_divides/KL_D/Calibration/Constrained_Parameters_KL_D.r")
 
 
 # Calculating potential evapotranspiration
@@ -93,6 +93,9 @@ dF <- data.frame(dta$outDta)
 names(dF) <- dta$VarsNams
 simBest = as.numeric(quantile(dF$TOTR, probs = (1 - p_OBS), na.rm = TRUE))
 
+# save the lumped model output for producing heatmap 
+# saveRDS(dta,file ="./Rscripts/dHRUM_setup/outputs/HeatMapData/KL_D_GW.rds")
+
 
 #================ Plotting================
 # dHRUMrunDist
@@ -105,6 +108,8 @@ dF_t$date <- as.Date(with(dF_t, paste(YEAR, MONTH, DAY,sep="-")), "%Y-%m-%d")
 dF_t$Month <- months(dF_t$dat)
 dF_t$Year <- format(dF_t$dat,format="%y")
 #names(dF_t)
+
+
 
 GW_list <- readRDS(file ="./Rscripts/dHRUM_setup/inputs/Soil_input_data/SoilMoist_Groundwater/GW_KL_D_HRUs.rds")  
 
