@@ -150,11 +150,12 @@ KL_III_1[,c('ID', 'teplota')] <- NULL
 # Extracting cell values for each polygon and calculating the weight or contribution of 
 # each GW level in each polygon.
 
-setwd("D:/project")
+setwd("D:/project/Amalie_Paper")
 getwd()
 
-Rasterlvl =terra::rast("./Aamlie_Paper/GIS/KL_WT_reclass.tif")
-poly = st_read("./Aamlie_Paper/GIS/KL_D_FGWGS.shp") # it is an sf object and terra doesn't like it
+Rasterlvl =terra::rast("./Rscripts/GISdata/KL_WT_reclass.tif")
+
+poly = st_read("./Rscripts/GISdata/KL_D_FGWGS.shp") # it is an sf object and terra doesn't like it
 
 
 poly=vect(poly) # changing sf object into the terra object
@@ -173,7 +174,7 @@ class(dta)
 dta <- as.data.table(dta)
 # dta$BP_Level1CZ <- as.factor(dta$BP_Level1CZ)
 
-ggplot(dta[ID==4,], aes(factor(KL_WT_reclass))) + 
+ggplot(dta[ID==4, ], aes(factor(KL_WT_reclass))) + 
   geom_bar()
 
 lvl <- data.frame(matrix(ncol = 10, nrow = 23))
@@ -205,7 +206,7 @@ names(p)
 # st_write(p, "D:/project/Aamlie_Paper/GIS/KL_D_FGWGSw.shp")
 
 # Claculating GW level for each HRU
-KL_D_Poly <- data.frame(read_sf("D:/project/Aamlie_Paper/GIS/KL_D_FGWGSw.shp"))
+KL_D_Poly <- data.frame(read_sf("./Rscripts/GISdata/KL_D_FGWGSw.shp"))
 KL_D_Weights <- KL_D_Poly[c('w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8', 'w9', 'w10')]
 
 L1 <- KL_II_3
@@ -265,7 +266,7 @@ ggplot(data.frame(GW_KL_TSs[[12]]), aes(x = date)) +
   geom_line(aes(y = GW_level))
 
 # saveRDS(GW_KL_TSs,  file = "D:/project/Setups_For_Dist_Model/inputs/Soil_input_data/SoilMoist_Groundwater/GW_KL_D_HRUs.rds")
-dta <- readRDS(file ="D:/project/Setups_For_Dist_Model/inputs/Soil_input_data/SoilMoist_Groundwater/GW_KL_D_HRUs.rds")
+dta <- readRDS(file ="./Rscripts/dHRUM_setup/inputs/Soil_input_data/SoilMoist_Groundwater/GW_KL_D_HRUs.rds")
 
 
 dta <- data.frame(GW_KL_TSs[[1]])
